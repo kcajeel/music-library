@@ -1,4 +1,7 @@
-use sqlx::{mysql::MySqlConnectOptions, Executor, MySql, MySqlPool, Pool};
+mod song;
+
+use crate::song::Song;
+use sqlx::{mysql::MySqlConnectOptions, MySql, MySqlPool, Pool};
 use std::process::{Command, Output};
 
 async fn connect_to_database() -> Result<Pool<MySql>, sqlx::Error> {
@@ -22,6 +25,7 @@ async fn connect_to_database() -> Result<Pool<MySql>, sqlx::Error> {
     }
 }
 
+#[allow(unused_assignments)]
 async fn start_database_server() -> Result<(), std::io::Error> {
     let os = std::env::consts::OS;
     let mut output = Command::new("").output();
@@ -65,51 +69,24 @@ fn start_db_windows() -> Result<Output, std::io::Error> {
     Command::new("net").arg("start").arg("mariadb").output()
 }
 
-struct Artist {
-    name: String,
-}
-impl Artist {
-    pub fn new(name: String) -> Self {
-        Self { name }
-    }
-}
-
-struct Album {
-    title: String,
-    artist: Artist,
-    release_year: u32,
-    media_type: String,
-}
-
-struct Song {
-    title: String,
-    artist: Artist,
-    release_year: u32,
-    media_type: String,
-}
-impl Song {
-    pub fn new(title: String, artist: Artist, release_year: u32, media_type: String) -> Self {
-        Self { title, artist, release_year, media_type }
-    }
+#[allow(non_snake_case)]
+async fn get_songs(pool: &MySqlPool) -> Result<Vec<Song>, sqlx::Error> {
+    let songs = sqlx::query_as!(Song, r#"SELECT * FROM Songs"#)
+        .fetch_all(pool)
+        .await?;
+    Ok(songs)
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), sqlx::Error> {
     match connect_to_database().await {
         Ok(pool) => {
             println!("Connected to the database");
-
-        },
+            let songs = get_songs(&pool).await?;
+            println!("{:#?}", songs);
+        }
         Err(err) => eprintln!("Failed to connect to the database: {}", err),
     }
-}
 
-async fn query_db(pool: &MySqlPool) -> Result<(), sqlx::Error> {
-    let rows = sqlx::query("SELECT * FROM Songs").fetch_all(pool).await?;
-    for row in rows {
-        let artist = row.get("Artist");
-        let song = Song::new(row.get("Title"), artist, row.get("ReleaseYear"), row.get("MediaType"));
-        println!("{:?}", song);
-    }
     Ok(())
 }
