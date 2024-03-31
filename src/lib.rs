@@ -1,4 +1,16 @@
-use std::{error::Error, fmt};
+use std::io;
+
+use sqlx::MySqlPool;
+
+use crate::database::connect_to_database;
+use app::App;
+use error::ArgumentError;
+
+mod app;
+mod database;
+mod error;
+mod song;
+mod tui;
 
 pub fn parse_args(args: Vec<String>) -> Result<(), ArgumentError> {
     if args.len() == 2 {
@@ -16,6 +28,13 @@ pub fn parse_args(args: Vec<String>) -> Result<(), ArgumentError> {
     } else {
         Err(ArgumentError::InvalidNumberOfArguments)
     }
+}
+
+pub async fn initialize() -> Result<(), sqlx::Error> {
+    const URL: &str = "mysql://root:@localhost:3306/music";
+    let pool = connect_to_database(URL).await?;
+    run_tui(pool)?;
+    Ok(())
 }
 
 fn print_help() {
@@ -37,17 +56,9 @@ fn print_version() {
     );
 }
 
-#[derive(Debug)]
-pub enum ArgumentError {
-    InvalidArgument,
-    InvalidNumberOfArguments,
-}
-impl Error for ArgumentError {}
-impl fmt::Display for ArgumentError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidArgument => write!(f, "Error: Invalid argument. Use \"-h\" or \"--help\" for usage information."),
-            Self::InvalidNumberOfArguments => write!(f, "Error: Invalid number of arguments. Use \"-h\" or \"--help\" for usage information."),
-        }
-    }
+fn run_tui(pool: MySqlPool) -> io::Result<()> {
+    let mut terminal = tui::init()?;
+    let app_result = App::new(pool).run(&mut terminal);
+    tui::restore()?;
+    app_result
 }
