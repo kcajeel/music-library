@@ -104,9 +104,12 @@ pub async fn get_songs_matching(
 }
 
 pub async fn get_all_songs(pool: &MySqlPool) -> Result<Vec<Song>, sqlx::Error> {
-    let songs = sqlx::query_as!(Song, "SELECT id, title, artist, album, release_year, media_type FROM Songs")
-        .fetch_all(pool)
-        .await?;
+    let songs = sqlx::query_as!(
+        Song,
+        "SELECT id, title, artist, album, release_year, media_type FROM Songs"
+    )
+    .fetch_all(pool)
+    .await?;
     Ok(songs)
 }
 
@@ -177,7 +180,9 @@ mod tests {
     fn get_lowest_id(songs: &Vec<Song>) -> u32 {
         let mut lowest = 999;
         for song in songs {
-            if song.id < lowest { lowest = song.id }
+            if song.id < lowest {
+                lowest = song.id
+            }
         }
         lowest
     }

@@ -52,7 +52,7 @@ impl App {
 
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
-            Event::Key(key_event) if key_event.kind ==KeyEventKind::Press => {
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 self.handle_keypress_event(key_event)
             }
             _ => {}
@@ -117,16 +117,18 @@ impl Widget for &App {
             )
             .borders(Borders::ALL)
             .border_set(border::THICK);
-        
+
         let current_state = Text::from(vec![Line::from(vec![
             "Search: ".into(),
             match self.search {
                 true => "true".to_owned().yellow(),
                 _ => "false".to_owned().yellow(),
-            }
+            },
         ])]);
 
-        Paragraph::new(current_state).centered().block(block).render(area, buf);
-            
+        Paragraph::new(current_state)
+            .centered()
+            .block(block)
+            .render(area, buf);
     }
 }
