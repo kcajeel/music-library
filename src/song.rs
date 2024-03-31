@@ -1,5 +1,6 @@
 #[derive(Debug, sqlx::FromRow)]
 pub struct Song {
+    pub id: u32,
     pub title: String,
     pub artist: String,
     pub album: String,
@@ -7,20 +8,21 @@ pub struct Song {
     pub media_type: String,
 }
 impl Song {
-    #[allow(dead_code)]
     pub fn new(
-        title: String,
-        artist: String,
-        album: String,
+        id: u32,
+        title: &str,
+        artist: &str,
+        album: &str,
         release_year: i32,
-        media_type: String,
+        media_type: &str,
     ) -> Self {
         Self {
-            title,
-            artist,
-            album,
-            release_year,
-            media_type,
+            id: id,
+            title: title.to_owned(),
+            artist: artist.to_owned(),
+            album: album.to_owned(),
+            release_year: release_year,
+            media_type: media_type.to_owned(),
         }
     }
 }
