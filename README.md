@@ -5,7 +5,7 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 ## Completed
 - Database integration works, queries work ✅
 - All CRUD operations tested ✅
+- `-h/--help` and `-v/--version` CLI args work ✅
 
 ## TODO
 - TUI needs to be written and tested
-- I would like to add `-h/--help` and `-v/--version` CLI args
