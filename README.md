@@ -5,7 +5,8 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 If it looks like there isn't a lot here, try the `dev` branch.
 
 ## Completed
-- Database integration works, queries work
+- Database integration works, queries work ✅
+- All CRUD operations tested ✅
 
 ## TODO
 - TUI needs to be written and tested
