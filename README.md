@@ -7,7 +7,7 @@ If it looks like there isn't a lot here, try the `dev` branch.
 ## Completed
 - Database integration works, queries work ✅
 - All CRUD operations tested ✅
+- `-h/--help` and `-v/--version` CLI args work ✅
 
 ## TODO
 - TUI needs to be written and tested
-- I would like to add `-h/--help` and `-v/--version` CLI args
