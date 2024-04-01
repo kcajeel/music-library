@@ -1,10 +1,20 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT * FROM Songs",
+  "query": "SELECT id, title, artist, album, release_year, media_type FROM Songs",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
+        "name": "id",
+        "type_info": {
+          "type": "Long",
+          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | AUTO_INCREMENT",
+          "char_set": 63,
+          "max_size": 10
+        }
+      },
+      {
+        "ordinal": 1,
         "name": "title",
         "type_info": {
           "type": "VarString",
@@ -14,7 +24,7 @@
         }
       },
       {
-        "ordinal": 1,
+        "ordinal": 2,
         "name": "artist",
         "type_info": {
           "type": "VarString",
@@ -24,7 +34,7 @@
         }
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "album",
         "type_info": {
           "type": "VarString",
@@ -34,7 +44,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "release_year",
         "type_info": {
           "type": "Long",
@@ -44,7 +54,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "media_type",
         "type_info": {
           "type": "VarString",
@@ -62,8 +72,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "dbbe100c5852e3d18d8dc00bb90c2a2f54c0748f7bad9e1d5af1352f00aede5e"
+  "hash": "78ea22ee85ae48fe9af106205ae9ba98442c6ae21dc0374795974cc54bc4293a"
 }

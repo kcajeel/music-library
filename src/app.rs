@@ -1,7 +1,7 @@
 use std::{io, rc::Rc};
 
 use crate::{
-    database::{self, get_all_songs}, song::Song, text_box::{InputMode, TextBox}, tui
+    database::{self, get_all_songs, get_songs_matching}, song::Song, text_box::{InputMode, TextBox}, tui
 };
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
@@ -47,7 +47,7 @@ impl App {
         self.songs = get_all_songs(&self.pool).await.unwrap();
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;
-            self.handle_events()?;
+            self.handle_events().await?;
         }
         Ok(())
     }   
@@ -129,24 +129,24 @@ impl App {
         frame.render_stateful_widget(table, get_layout(frame)[1], &mut table_state);
     }
 
-    fn handle_events(&mut self) -> io::Result<()> {
+    async fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_keypress_event(key_event)
+                self.handle_keypress_event(key_event).await
             }
             _ => {}
         };
         Ok(())
     }
 
-    fn handle_keypress_event(&mut self, key_event: KeyEvent) {
+    async fn handle_keypress_event(&mut self, key_event: KeyEvent) {
         if !self.esc_mode {
             match key_event.code {
                 KeyCode::Char('q') => self.exit(),
-                KeyCode::Char('/') => self.search(),
-                KeyCode::Char('n') => self.new_song(),
-                KeyCode::Char('e') => self.edit_song(),
-                KeyCode::Char('d') => self.delete_song(),
+                KeyCode::Char('/') => self.enable_search(),
+                KeyCode::Char('n') => self.enable_new_song(),
+                KeyCode::Char('e') => self.enable_edit_song(),
+                KeyCode::Char('d') => self.enable_delete_song(),
                 KeyCode::Up => self.selected_row = (self.selected_row - 1).clamp(0, 10),
                 KeyCode::Down => self.selected_row = (self.selected_row + 1).clamp(0, 10),
                 _ => {}
@@ -170,7 +170,10 @@ impl App {
                     KeyCode::Backspace =>self.searchbar.delete_char(),
                     KeyCode::Left => self.searchbar.move_cursor_left(),
                     KeyCode::Right => self.searchbar.move_cursor_right(),
-                    KeyCode::Enter => self.searchbar.submit_message(),
+                    KeyCode::Enter => {
+                        self.submit_query(self.searchbar.get_input().to_string()).await;
+                        // self.searchbar.submit_message();
+                    },
                     _ => {}
                 }
             }
@@ -181,23 +184,23 @@ impl App {
         self.exit = true;
     }
 
-    fn search(&mut self) {
+    fn enable_search(&mut self) {
         self.search = !self.search;
         self.esc_mode = true;
         self.searchbar.set_input_mode(InputMode::Editing);
     }
 
-    fn new_song(&mut self) {
+    fn enable_new_song(&mut self) {
         self.create = true;
         self.esc_mode = true;
     }
 
-    fn edit_song(&mut self) {
+    fn enable_edit_song(&mut self) {
         self.update = true;
         self.esc_mode = true;
     }
 
-    fn delete_song(&mut self) {
+    fn enable_delete_song(&mut self) {
         self.delete = true;
         self.esc_mode = true;
     }
@@ -205,6 +208,11 @@ impl App {
     pub fn set_searchbar(&mut self, searchbar: TextBox) {
         self.searchbar = searchbar;
     }
+
+    async fn submit_query(&mut self, query: String) {
+        self.songs = get_songs_matching(&self.pool, query).await.unwrap();
+    }
+    
 }
 
 impl Widget for &App {
