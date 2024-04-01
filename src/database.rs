@@ -71,7 +71,7 @@ fn start_db_windows() -> Result<Output, std::io::Error> {
     Command::new("net").arg("start").arg("mariadb").output()
 }
 
-pub async fn add_song(new_song: Song, pool: &MySqlPool) -> Result<MySqlQueryResult, sqlx::Error> {
+pub async fn add_song(pool: &MySqlPool, new_song: Song) -> Result<MySqlQueryResult, sqlx::Error> {
     let result = sqlx::query("INSERT INTO Songs (id, title, artist, album, release_year, media_type) VALUES (?, ?, ?, ?, ?, ?)")
     .bind(0)
     .bind(new_song.title)
