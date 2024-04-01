@@ -166,13 +166,14 @@ impl App {
                 match key_event.code {
                     KeyCode::Char(input_char) => {
                         self.searchbar.enter_char(input_char);
+                        self.submit_query(self.searchbar.get_input().to_string()).await;
                     },
                     KeyCode::Backspace =>self.searchbar.delete_char(),
                     KeyCode::Left => self.searchbar.move_cursor_left(),
                     KeyCode::Right => self.searchbar.move_cursor_right(),
                     KeyCode::Enter => {
                         self.submit_query(self.searchbar.get_input().to_string()).await;
-                        // self.searchbar.submit_message();
+                        self.searchbar.submit_message();
                     },
                     _ => {}
                 }
@@ -212,7 +213,7 @@ impl App {
     async fn submit_query(&mut self, query: String) {
         self.songs = get_songs_matching(&self.pool, query).await.unwrap();
     }
-    
+
 }
 
 impl Widget for &App {
