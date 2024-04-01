@@ -1,21 +1,21 @@
 // This module is sourced from https://github.com/ratatui-org/ratatui/blob/main/examples/user_input.rs
-// Thank you to joshka from the Ratatui discord server for the recommendation 
+// Thank you to joshka from the Ratatui discord server for the recommendation
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum InputMode {
     Normal,
     Editing,
 }
 
 /// TextBox holds the state of the widget
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TextBox {
     /// Current value of the input box
     input: String,
     /// Position of cursor in the editor area.
     cursor_position: usize,
     /// Current input mode
-    input_mode: InputMode,
+    pub input_mode: InputMode,
     /// History of recorded messages
     messages: Vec<String>,
 }

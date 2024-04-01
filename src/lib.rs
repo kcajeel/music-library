@@ -9,9 +9,10 @@ use error::ArgumentError;
 mod app;
 mod database;
 mod error;
+mod popup_menu;
 mod song;
-mod tui;
 mod text_box;
+mod tui;
 
 pub fn parse_args(args: Vec<String>) -> Result<(), ArgumentError> {
     if args.len() == 2 {
