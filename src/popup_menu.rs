@@ -7,7 +7,6 @@ use crate::{
 };
 use ratatui::{
     prelude::*,
-    symbols::border,
     widgets::{block::*, *},
 };
 use sqlx::MySqlPool;
@@ -134,7 +133,7 @@ impl Widget for Popup {
 
         block.render(area, buf);
         let title_block = Block::default().borders(Borders::ALL);
-        let title_bar = Paragraph::new(Text::from(format!(
+        let _title_bar = Paragraph::new(Text::from(format!(
             " Title: {}",
             self.title_box.get_input()
         )))
@@ -143,7 +142,7 @@ impl Widget for Popup {
         .render(vert_layout[0], buf);
 
         let artist_block = Block::default().borders(Borders::ALL);
-        let artist_bar = Paragraph::new(Text::from(format!(
+        let _artist_bar = Paragraph::new(Text::from(format!(
             " Artist: {}",
             self.artist_box.get_input()
         )))
@@ -152,17 +151,17 @@ impl Widget for Popup {
         .render(vert_layout[1], buf);
 
         let album_block = Block::default().borders(Borders::ALL);
-        let album_bar = Paragraph::new(Text::from(format!(
+        let _album_bar = Paragraph::new(Text::from(format!(
             " Album: {}",
             self.album_box.get_input()
         )))
         .left_aligned()
         .block(album_block)
         .render(vert_layout[2], buf);
-        let album_block = Block::default().borders(Borders::ALL);
+        let _album_block = Block::default().borders(Borders::ALL);
 
         let year_block = Block::default().borders(Borders::ALL);
-        let year_bar = Paragraph::new(Text::from(format!(
+        let _year_bar = Paragraph::new(Text::from(format!(
             " Year: {}",
             self.release_year_box.get_input()
         )))
@@ -171,7 +170,7 @@ impl Widget for Popup {
         .render(horiz_layout[0], buf);
 
         let media_type_block = Block::default().borders(Borders::ALL);
-        let media_type_bar = Paragraph::new(Text::from(format!(
+        let _media_type_bar = Paragraph::new(Text::from(format!(
             " Media: {}",
             self.media_type_box.get_input()
         )))

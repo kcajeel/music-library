@@ -1,8 +1,8 @@
 use std::{io, rc::Rc};
 
 use crate::{
-    database::{self, add_song, delete_song, get_all_songs, get_songs_matching, update_song},
-    popup_menu::{self, Popup, PopupMode},
+    database::{delete_song, get_all_songs, get_songs_matching},
+    popup_menu::{Popup, PopupMode},
     song::Song,
     text_box::{InputMode, TextBox},
     tui,
@@ -13,7 +13,7 @@ use ratatui::{
     symbols::border,
     widgets::{block::*, *},
 };
-use sqlx::{pool, MySqlPool};
+use sqlx::MySqlPool;
 
 // App stores the context information for what action is taking place as well as the database pool
 #[derive(Debug)]
@@ -61,8 +61,6 @@ impl App {
     }
 
     fn render_frame(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.size());
-
         let mut rows: Vec<Row> = Vec::new();
         for song in &self.songs {
             let row = song_to_row(song);
@@ -96,8 +94,6 @@ impl App {
 
         let mut table_state: TableState =
             TableState::default().with_selected(Some(self.selected_row.clamp(0, 100)));
-
-        
 
         let header = Row::new(vec![
             Cell::from(" ID".bold()),
@@ -330,8 +326,7 @@ impl App {
                     if self.create_popup.do_all_boxes_have_text() {
                         match key_event.code {
                             KeyCode::Enter => {
-                                let new_song = Song::new(0, &self.create_popup.title_box.get_input(), &self.create_popup.artist_box.get_input(), &self.create_popup.album_box.get_input(), self.create_popup.release_year_box.get_input().parse::<i32>().unwrap(), &self.create_popup.media_type_box.get_input());
-                                add_song(&self.pool, new_song).await.unwrap();
+                                self.create_popup.submit(&self.pool).await;
                             },
                             _ => {}
                         }
@@ -427,8 +422,7 @@ impl App {
                     if self.update_popup.do_all_boxes_have_text() {
                         match key_event.code {
                             KeyCode::Enter => {
-                                let new_song = Song::new(0, &self.update_popup.title_box.get_input(), &self.update_popup.artist_box.get_input(), &self.update_popup.album_box.get_input(), self.update_popup.release_year_box.get_input().parse::<i32>().unwrap(), &self.update_popup.media_type_box.get_input());
-                                update_song(&self.pool, self.selected_row as u32, new_song).await.unwrap();
+                                self.update_popup.submit(&self.pool).await;
                             },
                             _ => {}
                         }
@@ -480,61 +474,8 @@ impl App {
         self.esc_mode = true;
     }
 
-    pub fn set_searchbar(&mut self, searchbar: TextBox) {
-        self.searchbar = searchbar;
-    }
-
     async fn submit_query(&mut self, query: String) {
         self.songs = get_songs_matching(&self.pool, query).await.unwrap();
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer)
-    where
-        Self: Sized,
-    {
-        let title = Title::from(" Music Library ".bold());
-        let instructions = Title::from(Line::from(vec![
-            " Search ".into(),
-            "</>".yellow().bold(),
-            " New Song ".into(),
-            "<N>".yellow().bold(),
-            " Edit Song ".into(),
-            "<E>".yellow().bold(),
-            " Delete Song ".into(),
-            "<D> ".yellow().bold(),
-        ]));
-        let block = Block::default()
-            .title(title.alignment(Alignment::Center))
-            .title(
-                instructions
-                    .alignment(Alignment::Center)
-                    .position(Position::Bottom),
-            )
-            .borders(Borders::ALL)
-            .border_set(border::THICK);
-
-        let current_state = Text::from(vec![Line::from(vec![
-            "Search: ".into(),
-            match self.search {
-                true => "true".to_owned().yellow(),
-                _ => "false".to_owned().yellow(),
-            },
-        ])]);
-
-        // let current_state = Text::from(vec![Line::from(vec![
-        //     "Search: ".into(),
-        //     match self.search {
-        //         true => "true".to_owned().yellow(),
-        //         _ => "false".to_owned().yellow(),
-        //     },
-
-        // ])]);
-        // // Paragraph::new(current_state)
-        // //     .centered()
-        // //     .block(block)
-        // //     .render(area, buf);
     }
 }
 
@@ -650,7 +591,7 @@ frame.render_widget(artist_bar, vert_layout[1]);
     .block(album_block);
 frame.render_widget(album_bar, vert_layout[2]);
 
-    let album_block = Block::default().borders(Borders::ALL);
+    let _album_block = Block::default().borders(Borders::ALL);
 
     let year_block = Block::default().borders(Borders::ALL);
     let year_bar = Paragraph::new(Text::from(format!(
