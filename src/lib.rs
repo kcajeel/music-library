@@ -33,7 +33,7 @@ pub fn parse_args(args: Vec<String>) -> Result<(), ArgumentError> {
 pub async fn initialize() -> Result<(), sqlx::Error> {
     const URL: &str = "mysql://root:@localhost:3306/music";
     let pool = connect_to_database(URL).await?;
-    run_tui(pool)?;
+    run_tui(pool).await?;
     Ok(())
 }
 
@@ -56,9 +56,9 @@ fn print_version() {
     );
 }
 
-fn run_tui(pool: MySqlPool) -> io::Result<()> {
+async fn run_tui(pool: MySqlPool) -> io::Result<()> {
     let mut terminal = tui::init()?;
-    let app_result = App::new(pool).run(&mut terminal);
+    let app_result = App::new(pool).run(&mut terminal).await;
     tui::restore()?;
     app_result
 }
