@@ -6,6 +6,8 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - Database integration works, queries work ✅
 - All CRUD operations tested ✅
 - `-h/--help` and `-v/--version` CLI args work ✅
+- TUI displays songs from database ✅
+- TUI search works ✅
 
 ## TODO
-- TUI needs to be written and tested
+- TUI add/edit/delete song popups don't functionally do anything yet
