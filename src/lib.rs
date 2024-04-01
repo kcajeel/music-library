@@ -11,6 +11,7 @@ mod database;
 mod error;
 mod song;
 mod tui;
+mod text_box;
 
 pub fn parse_args(args: Vec<String>) -> Result<(), ArgumentError> {
     if args.len() == 2 {

@@ -1,9 +1,7 @@
 use std::{io, rc::Rc};
 
 use crate::{
-    database::{self, get_all_songs},
-    song::Song,
-    tui,
+    database::{self, get_all_songs}, song::Song, text_box::{InputMode, TextBox}, tui
 };
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
@@ -25,6 +23,7 @@ pub struct App {
     delete: bool,
     esc_mode: bool,
     exit: bool,
+    searchbar: TextBox,
 }
 impl App {
     pub fn new(pool: MySqlPool) -> Self {
@@ -39,6 +38,7 @@ impl App {
             delete: false,
             esc_mode: false,
             exit: false,
+            searchbar: TextBox::new(),
         }
     }
 
@@ -50,7 +50,7 @@ impl App {
             self.handle_events()?;
         }
         Ok(())
-    }
+    }   
 
     fn render_frame(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.size());
@@ -113,7 +113,17 @@ impl App {
         .highlight_symbol(">>")
         .block(table_block);
 
-        let search_bar = Paragraph::new(" Search: ".bold()).left_aligned().block(search_block);
+
+
+        let mut search_text = Text::default();        
+        // this doesn't work but i want the search text to look yellow if search mode is on
+        if self.search {
+            search_text = Text::from(format!(" Search: {}", self.searchbar.get_input())).yellow();
+        } else {
+            search_text = Text::from(format!(" Search: {}", self.searchbar.get_input()));
+        }
+
+        let search_bar = Paragraph::new(search_text.bold()).left_aligned().block(search_block);
 
         frame.render_widget(search_bar, get_layout(&frame)[0]);
         frame.render_stateful_widget(table, get_layout(frame)[1], &mut table_state);
@@ -152,6 +162,18 @@ impl App {
                 },
                 _ => {}
             }
+            if self.search {
+                match key_event.code {
+                    KeyCode::Char(input_char) => {
+                        self.searchbar.enter_char(input_char);
+                    },
+                    KeyCode::Backspace =>self.searchbar.delete_char(),
+                    KeyCode::Left => self.searchbar.move_cursor_left(),
+                    KeyCode::Right => self.searchbar.move_cursor_right(),
+                    KeyCode::Enter => self.searchbar.submit_message(),
+                    _ => {}
+                }
+            }
         }
     }
 
@@ -162,6 +184,7 @@ impl App {
     fn search(&mut self) {
         self.search = !self.search;
         self.esc_mode = true;
+        self.searchbar.set_input_mode(InputMode::Editing);
     }
 
     fn new_song(&mut self) {
@@ -177,6 +200,10 @@ impl App {
     fn delete_song(&mut self) {
         self.delete = true;
         self.esc_mode = true;
+    }
+    
+    pub fn set_searchbar(&mut self, searchbar: TextBox) {
+        self.searchbar = searchbar;
     }
 }
 
