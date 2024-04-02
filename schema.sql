@@ -1,6 +1,6 @@
 -- Including my SQL schema so the database can be replicated
 
-# USE music;
+USE music;
 
 CREATE table if not exists Artists(
   name VARCHAR(60) not null PRIMARY KEY
