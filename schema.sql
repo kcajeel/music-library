@@ -7,12 +7,12 @@ CREATE table if not exists Artists(
 );
   
 CREATE TABLE if not exists Albums(
+  id int unsigned not null auto_increment primary key,
   title VARCHAR(60) not null,
   artist VARCHAR(200) not null,
   release_year INT not null,
-  media_type VARCHAR(60) not null,
-  PRIMARY KEY(title,artist,release_year,media_type));
-    
+  media_type VARCHAR(60) not null);
+
 CREATE TABLE if not exists Songs(
   id int unsigned not null auto_increment primary key,
   title VARCHAR(60) not null,
