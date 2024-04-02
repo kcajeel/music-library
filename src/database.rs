@@ -8,8 +8,10 @@ use std::process::{Command, Output};
 
 pub async fn connect_to_database(url: &str) -> Result<Pool<MySql>, sqlx::Error> {
     // Configure database connection options
-    let opts: MySqlConnectOptions = url.parse()?;
-
+    let opts: MySqlConnectOptions = match url.parse() {
+        Ok(valid_url) => valid_url,
+        Err(error) => panic!("Invalid URL. Error: {}", error),
+    };
     // Attempt to connect to the database
     match MySqlPool::connect_with(opts.clone()).await {
         Ok(connection) => Ok(connection),
@@ -104,12 +106,9 @@ pub async fn get_songs_matching(
 }
 
 pub async fn get_all_songs(pool: &MySqlPool) -> Result<Vec<Song>, sqlx::Error> {
-    let songs = sqlx::query_as!(
-        Song,
-        "SELECT * FROM Songs"
-    )
-    .fetch_all(pool)
-    .await?;
+    let songs = sqlx::query_as!(Song, "SELECT * FROM Songs")
+        .fetch_all(pool)
+        .await?;
     Ok(songs)
 }
 
@@ -159,20 +158,19 @@ mod tests {
             .unwrap();
 
         println!("Songs that match {}: {:?}", test_song, matching_songs);
-        assert!(matching_songs.get(0).unwrap().title.contains("Test") || matching_songs.get(0).unwrap().title.contains("test"));
+        assert!(
+            matching_songs.get(0).unwrap().title.contains("Test")
+                || matching_songs.get(0).unwrap().title.contains("test")
+        );
     }
 
     #[tokio::test]
     async fn test_update() {
         let pool = connect_to_database(URL).await.unwrap();
         let updated_song = Song::new(0, "testing again", "Unit Tests", "Testing 2", 2024, "N/A");
-
-        println!("line 166");
-
         let song_list = get_songs_matching(&pool, "Testing".to_owned())
             .await
             .unwrap();
-        println!("got song list: {:?}", song_list);
         let test_song = song_list.get(0).unwrap();
         println!("Song with id {} will be updated", test_song.id);
 
@@ -180,7 +178,11 @@ mod tests {
             .await
             .unwrap();
         println!("Rows affected by update: {:?}", result);
-        assert!(result.rows_affected() == 1, "rows affected: {}", result.rows_affected());
+        assert!(
+            result.rows_affected() == 1,
+            "rows affected: {}",
+            result.rows_affected()
+        );
     }
 
     #[tokio::test]

@@ -59,8 +59,14 @@ fn print_version() {
 }
 
 async fn run_tui(pool: MySqlPool) -> io::Result<()> {
-    let mut terminal = tui::init()?;
+    let mut terminal = match tui::init() {
+        Ok(tui) => tui,
+        Err(error) => panic!("TUI initialization failed: {}", error),
+    };
     let app_result = App::new(pool).run(&mut terminal).await;
-    tui::restore()?;
+    match tui::restore() {
+        Ok(restored_terminal) => restored_terminal,
+        Err(error) => panic!("Terminal restoration failed: {}", error),
+    }
     app_result
 }

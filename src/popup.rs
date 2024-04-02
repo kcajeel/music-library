@@ -68,7 +68,7 @@ impl Popup {
         } else if self.album_box.input_mode == InputMode::Editing {
             result = true;
         } else if self.release_year_box.input_mode == InputMode::Editing {
-                result = true;
+            result = true;
         } else if self.media_type_box.input_mode == InputMode::Editing {
             result = true;
         }
@@ -77,7 +77,12 @@ impl Popup {
 
     pub fn do_all_boxes_have_text(&self) -> bool {
         let mut result = false;
-        if (self.title_box.get_input().len() > 0) && (self.artist_box.get_input().len() > 0) && (self.album_box.get_input().len() > 0) && (self.release_year_box.get_input().len() > 0) && (self.media_type_box.get_input().len() > 0) {
+        if (self.title_box.get_input().len() > 0)
+            && (self.artist_box.get_input().len() > 0)
+            && (self.album_box.get_input().len() > 0)
+            && (self.release_year_box.get_input().len() > 0)
+            && (self.media_type_box.get_input().len() > 0)
+        {
             result = true;
         }
         result
@@ -85,9 +90,9 @@ impl Popup {
 
     pub fn set_all_input_modes(&mut self, new_mode: InputMode) {
         self.title_box.input_mode = new_mode.clone();
-        self.artist_box.input_mode= new_mode.clone();
-        self.album_box.input_mode= new_mode.clone();
-        self.release_year_box.input_mode= new_mode.clone();
+        self.artist_box.input_mode = new_mode.clone();
+        self.album_box.input_mode = new_mode.clone();
+        self.release_year_box.input_mode = new_mode.clone();
         self.media_type_box.input_mode = new_mode;
     }
 }
