@@ -10,4 +10,5 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - TUI search works ✅
 
 ## TODO
-- TUI add/edit/delete song popups don't functionally do anything yet
+- Make selected fields of add/edit popups turn yellow
+- Make popups disappear when "Enter" is pressed
