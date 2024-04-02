@@ -1,6 +1,8 @@
 // This module is sourced from https://github.com/ratatui-org/ratatui/blob/main/examples/user_input.rs
 // Thank you to joshka from the Ratatui discord server for the recommendation
 
+use ratatui::{style::Stylize, text::Text, widgets::Paragraph};
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum InputMode {
     Normal,
@@ -10,6 +12,8 @@ pub enum InputMode {
 /// TextBox holds the state of the widget
 #[derive(Debug, Clone)]
 pub struct TextBox {
+    /// Title of the box (displayed before text)
+    title: String,
     /// Current value of the input box
     input: String,
     /// Position of cursor in the editor area.
@@ -21,8 +25,9 @@ pub struct TextBox {
 }
 
 impl TextBox {
-    pub const fn new() -> Self {
+    pub const fn new(title: String) -> Self {
         Self {
+            title,
             input: String::new(),
             input_mode: InputMode::Normal,
             messages: Vec::new(),
@@ -92,5 +97,20 @@ impl TextBox {
 
     pub fn get_input(&self) -> &String {
         &self.input
+    }
+
+    pub fn get_widget(&self) -> Paragraph {
+        match self.input_mode {
+            InputMode::Normal => {
+                Paragraph::new(Text::from(format!(" {}: {}", self.title, self.input)))
+                    .left_aligned()
+            }
+            InputMode::Editing => Paragraph::new(
+                Text::from(format!(" {}: {}", self.title, self.input))
+                    .yellow()
+                    .bold(),
+            )
+            .left_aligned(),
+        }
     }
 }

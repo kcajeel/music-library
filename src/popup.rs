@@ -33,11 +33,11 @@ impl Popup {
         Self {
             mode,
             song_id,
-            title_box: TextBox::new(),
-            artist_box: TextBox::new(),
-            album_box: TextBox::new(),
-            release_year_box: TextBox::new(),
-            media_type_box: TextBox::new(),
+            title_box: TextBox::new("Title".to_owned()),
+            artist_box: TextBox::new("Artist".to_owned()),
+            album_box: TextBox::new("Album".to_owned()),
+            release_year_box: TextBox::new("Year".to_owned()),
+            media_type_box: TextBox::new("Media Type".to_owned()),
         }
     }
     pub async fn submit(&mut self, pool: &MySqlPool) {
