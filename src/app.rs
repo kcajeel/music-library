@@ -2,7 +2,7 @@ use std::{io, rc::Rc};
 
 use crate::{
     database::{delete_song, get_all_songs, get_songs_matching},
-    popup_menu::{Popup, PopupMode},
+    popup::{Popup, PopupMode},
     song::Song,
     text_box::{InputMode, TextBox},
     tui,

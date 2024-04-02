@@ -9,7 +9,7 @@ use error::ArgumentError;
 mod app;
 mod database;
 mod error;
-mod popup_menu;
+mod popup;
 mod song;
 mod text_box;
 mod tui;
