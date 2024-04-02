@@ -10,8 +10,10 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - TUI search works ✅
 
 ## TODO
-- Make selected fields of add/edit popups turn yellow
 - Make popups disappear when "Enter" is pressed
+- Submit each text box in popups when "Enter" is pressed iff each box is filled
+- Populate text boxes in Edit popups
+
 
 ## To Run This Application: 
 
