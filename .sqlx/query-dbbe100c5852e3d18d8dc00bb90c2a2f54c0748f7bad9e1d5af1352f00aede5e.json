@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT id, title, artist, album, release_year, media_type FROM Songs",
+  "query": "SELECT * FROM Songs",
   "describe": {
     "columns": [
       {
@@ -8,7 +8,7 @@
         "name": "id",
         "type_info": {
           "type": "Long",
-          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | AUTO_INCREMENT",
+          "flags": "NOT_NULL | PRIMARY_KEY | UNSIGNED | AUTO_INCREMENT",
           "char_set": 63,
           "max_size": 10
         }
@@ -18,7 +18,7 @@
         "name": "title",
         "type_info": {
           "type": "VarString",
-          "flags": "NOT_NULL | PRIMARY_KEY | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "char_set": 224,
           "max_size": 240
         }
@@ -28,7 +28,7 @@
         "name": "artist",
         "type_info": {
           "type": "VarString",
-          "flags": "NOT_NULL | PRIMARY_KEY | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "char_set": 224,
           "max_size": 800
         }
@@ -38,7 +38,7 @@
         "name": "album",
         "type_info": {
           "type": "VarString",
-          "flags": "NOT_NULL | PRIMARY_KEY | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "char_set": 224,
           "max_size": 4000
         }
@@ -48,7 +48,7 @@
         "name": "release_year",
         "type_info": {
           "type": "Long",
-          "flags": "NOT_NULL | PRIMARY_KEY | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "char_set": 63,
           "max_size": 11
         }
@@ -58,7 +58,7 @@
         "name": "media_type",
         "type_info": {
           "type": "VarString",
-          "flags": "NOT_NULL | PRIMARY_KEY | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "char_set": 224,
           "max_size": 240
         }
@@ -76,5 +76,5 @@
       false
     ]
   },
-  "hash": "78ea22ee85ae48fe9af106205ae9ba98442c6ae21dc0374795974cc54bc4293a"
+  "hash": "dbbe100c5852e3d18d8dc00bb90c2a2f54c0748f7bad9e1d5af1352f00aede5e"
 }

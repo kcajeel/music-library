@@ -106,7 +106,7 @@ pub async fn get_songs_matching(
 pub async fn get_all_songs(pool: &MySqlPool) -> Result<Vec<Song>, sqlx::Error> {
     let songs = sqlx::query_as!(
         Song,
-        "SELECT id, title, artist, album, release_year, media_type FROM Songs"
+        "SELECT * FROM Songs"
     )
     .fetch_all(pool)
     .await?;
@@ -132,6 +132,10 @@ pub async fn delete_song(pool: &MySqlPool, song_id: u32) -> Result<MySqlQueryRes
 
 #[cfg(test)]
 mod tests {
+
+    // TO RUN TESTS: YOU MUST SET DATABASE_URL TO music-test
+    // cargo sqlx prepare -D mysql://root:@localhost:3306/music-test
+
     use super::*;
     use crate::song::Song;
 
@@ -141,7 +145,7 @@ mod tests {
     async fn test_create() {
         let pool = connect_to_database(URL).await.unwrap();
         let test_song = Song::new(0, "Testing", "Unit Tests", "Under Test", 2024, "N/A");
-        let result = add_song(test_song, &pool).await.unwrap();
+        let result = add_song(&pool, test_song).await.unwrap();
         println!("rows affected by create: {}", result.rows_affected());
         assert!(result.rows_affected() == 1);
     }
@@ -150,32 +154,47 @@ mod tests {
     async fn test_retrieve() {
         let pool = connect_to_database(URL).await.unwrap();
         let test_song = "Test";
-        let matching_ids = get_songs_matching(&pool, test_song.to_owned())
+        let matching_songs = get_songs_matching(&pool, test_song.to_owned())
             .await
             .unwrap();
-        println!("Song id's that match {}: {:?}", test_song, matching_ids);
-        assert!(matching_ids.len() == 1);
-        assert!(*matching_ids.get(0).unwrap() == 2);
+
+        println!("Songs that match {}: {:?}", test_song, matching_songs);
+        assert!(matching_songs.get(0).unwrap().title.contains("Test") || matching_songs.get(0).unwrap().title.contains("test"));
     }
 
-    //I updated get_songs_matching and it broke my tests. I'll fix it later..
     #[tokio::test]
     async fn test_update() {
         let pool = connect_to_database(URL).await.unwrap();
         let updated_song = Song::new(0, "testing again", "Unit Tests", "Testing 2", 2024, "N/A");
 
-        let id_list = get_songs_matching(&pool, "Testing".to_owned())
+        println!("line 166");
+
+        let song_list = get_songs_matching(&pool, "Testing".to_owned())
             .await
             .unwrap();
-        assert!(id_list.len() == 1);
-        let test_song_id = *id_list.get(0).unwrap();
-        println!("Song with id {test_song_id} will be updated");
+        println!("got song list: {:?}", song_list);
+        let test_song = song_list.get(0).unwrap();
+        println!("Song with id {} will be updated", test_song.id);
 
-        let result = update_song(&pool, test_song_id, updated_song)
+        let result = update_song(&pool, test_song.id, updated_song)
             .await
             .unwrap();
         println!("Rows affected by update: {:?}", result);
-        assert!(result.rows_affected() == 1);
+        assert!(result.rows_affected() == 1, "rows affected: {}", result.rows_affected());
+    }
+
+    #[tokio::test]
+    async fn test_delete() {
+        let pool = connect_to_database(URL).await.unwrap();
+        let all_songs = get_all_songs(&pool).await.unwrap();
+
+        println!("Songs before delete: {:?}", all_songs);
+        let lowest_id = get_lowest_id(&all_songs);
+        delete_song(&pool, lowest_id).await.unwrap();
+
+        let new_songs = get_all_songs(&pool).await.unwrap();
+        println!("Songs after delete: {:?}", new_songs);
+        assert_ne!(new_songs.len(), all_songs.len());
     }
 
     fn get_lowest_id(songs: &Vec<Song>) -> u32 {
@@ -186,17 +205,5 @@ mod tests {
             }
         }
         lowest
-    }
-
-    #[tokio::test]
-    async fn test_delete() {
-        let pool = connect_to_database(URL).await.unwrap();
-        let all_songs = get_all_songs(&pool).await.unwrap();
-        println!("Songs before delete: {:?}", all_songs);
-        let lowest_id = get_lowest_id(&all_songs);
-        delete_song(&pool, lowest_id).await.unwrap();
-        let new_songs = get_all_songs(&pool).await.unwrap();
-        println!("Songs after delete: {:?}", new_songs);
-        assert_ne!(new_songs.len(), all_songs.len());
     }
 }
