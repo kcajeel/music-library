@@ -12,3 +12,34 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 ## TODO
 - Make selected fields of add/edit popups turn yellow
 - Make popups disappear when "Enter" is pressed
+
+## To Run This Application: 
+
+### Dependencies
+In order to run this application, you need to have these dependencies: 
+
+ - [Cargo](https://www.rust-lang.org/tools/install)
+ - [MariaDB/MySQL](https://mariadb.org/download/)
+ - [sqlx](https://crates.io/crates/sqlx)
+ - [Ratatui](https://crates.io/crates/ratatui/)
+ - [Crossterm](https://crates.io/crates/crossterm)
+
+ Once everything is installed and/or compiled, you need to initialize the database. 
+
+### Initializing the Database
+
+In your preferred SQL editor (I use DBeaver), use the included [schema](schema.sql) to initialize the tables. 
+
+* note: You must first create a database called `music` before running the schema. 
+
+### Building and Running the App
+
+Now, you should navigate in your terminal to the directory where you downloaded this source code and  use the command
+
+ ```
+ $ cargo run
+ ```
+
+If you installed your dependencies correctly, the application will begin to compile. If you set up your database correctly, it will run too. 
+
+Please submit an [issue](https://github.com/kcajeel/music-library/issues) if you encounter any errors or need any clarification. 
