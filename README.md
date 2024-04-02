@@ -21,6 +21,7 @@ In order to run this application, you need to have these dependencies:
  - [Cargo](https://www.rust-lang.org/tools/install)
  - [MariaDB/MySQL](https://mariadb.org/download/)
  - [sqlx](https://crates.io/crates/sqlx)
+ - [sqlx-cli](https://crates.io/crates/sqlx-cli)
  - [Ratatui](https://crates.io/crates/ratatui/)
  - [Crossterm](https://crates.io/crates/crossterm)
 
@@ -36,10 +37,21 @@ In your preferred SQL editor (I use DBeaver), use the included [schema](schema.s
 
 Now, you should navigate in your terminal to the directory where you downloaded this source code and  use the command
 
+```
+$ cargo sqlx prepare -D mysql://<Database Username>:<Database Password>@localhost:<Your Database Port>/music
+```
+* the usual port for a MySQL database is port 3306
+
+This will run sqlx on the code to ensure that all of the queries will work. Sqlx checks all queries at compile-time and saves them in a  `.sqlx/` directory. This way, sqlx can protect your queries from SQL injection and it will ensure that they work before you run your code. 
+
+Now that your SQL queries are prepared, you should be all clear to run the code: 
+
  ```
  $ cargo run
  ```
 
-If you installed your dependencies correctly, the application will begin to compile. If you set up your database correctly, it will run too. 
+If you installed your dependencies correctly, the application will begin to compile. If you set up and prepared your database correctly, it will run too. 
+
+The TUI provides instructions at the bottom of the screen, but I suppose I should make a user guide eventually. 
 
 Please submit an [issue](https://github.com/kcajeel/music-library/issues) if you encounter any errors or need any clarification. 
