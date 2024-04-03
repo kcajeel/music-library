@@ -236,6 +236,16 @@ impl App {
                     _ => {}
                 },
                 AppMode::Create => {
+                    if self.create_popup.do_all_boxes_have_text() {
+                        match key_event.code {
+                            KeyCode::Enter => {
+                                if self.create_popup.do_all_boxes_have_text() {
+                                    self.create_popup.submit(&self.pool).await;
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
                     if self.create_popup.title_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
@@ -247,9 +257,6 @@ impl App {
                             KeyCode::Tab => {
                                 self.create_popup.artist_box.input_mode = InputMode::Editing;
                                 self.create_popup.title_box.input_mode = InputMode::Normal;
-                            }
-                            KeyCode::Enter => {
-                                self.create_popup.title_box.submit_message();
                             }
                             _ => {}
                         }
@@ -265,9 +272,6 @@ impl App {
                                 self.create_popup.album_box.input_mode = InputMode::Editing;
                                 self.create_popup.artist_box.input_mode = InputMode::Normal;
                             }
-                            KeyCode::Enter => {
-                                self.create_popup.artist_box.submit_message();
-                            }
                             _ => {}
                         }
                     } else if self.create_popup.album_box.input_mode == InputMode::Editing {
@@ -281,9 +285,6 @@ impl App {
                             KeyCode::Tab => {
                                 self.create_popup.release_year_box.input_mode = InputMode::Editing;
                                 self.create_popup.album_box.input_mode = InputMode::Normal;
-                            }
-                            KeyCode::Enter => {
-                                self.create_popup.album_box.submit_message();
                             }
                             _ => {}
                         }
@@ -318,19 +319,7 @@ impl App {
                                 self.create_popup.title_box.input_mode = InputMode::Editing;
                                 self.create_popup.media_type_box.input_mode = InputMode::Normal;
                             }
-                            KeyCode::Enter => {
-                                self.create_popup.media_type_box.submit_message();
-                            }
                             _ => {}
-                        }
-                    } else {
-                        if self.create_popup.do_all_boxes_have_text() {
-                            match key_event.code {
-                                KeyCode::Enter => {
-                                    self.create_popup.submit(&self.pool).await;
-                                }
-                                _ => {}
-                            }
                         }
                     }
                 }
@@ -450,8 +439,8 @@ impl App {
     }
 
     fn get_layout(&self, frame: &Frame) -> Rc<[Rect]> {
-        let frame_percentage = if self.debug {70} else {90};
-    
+        let frame_percentage = if self.debug { 70 } else { 90 };
+
         if self.debug {
             Layout::default()
                 .direction(Direction::Vertical)
@@ -463,12 +452,12 @@ impl App {
                 .split(frame.size())
         } else {
             Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Percentage(100 - frame_percentage),
-                Constraint::Percentage(frame_percentage),
-            ])
-            .split(frame.size())
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(100 - frame_percentage),
+                    Constraint::Percentage(frame_percentage),
+                ])
+                .split(frame.size())
         }
     }
 

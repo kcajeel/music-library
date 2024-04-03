@@ -41,22 +41,41 @@ impl Popup {
         }
     }
     pub async fn submit(&mut self, pool: &MySqlPool) {
-        let new_song = Song::new(
-            0,
-            self.title_box.get_input(),
-            &self.artist_box.get_input(),
-            &self.album_box.get_input(),
-            self.release_year_box.get_input().parse::<i32>().unwrap(),
-            &self.media_type_box.get_input(),
-        );
+        self.submit_all_boxes();
+        let new_song = self.get_song_from_input();
         match self.mode {
             PopupMode::Create => {
-                add_song(pool, new_song).await.unwrap();
+                match add_song(pool, new_song).await {
+                    Ok(_) => (),
+                    Err(error) => eprintln!("Error adding song: {error}"),
+                };
             }
             PopupMode::Update => {
-                update_song(pool, self.song_id, new_song).await.unwrap();
+                match update_song(pool, self.song_id, new_song).await {
+                    Ok(_) => (),
+                    Err(error) => eprintln!("Error updating song: {error}"),
+                };
             }
         }
+    }
+
+    fn submit_all_boxes(&mut self) {
+        self.title_box.submit_message();
+        self.artist_box.submit_message();
+        self.album_box.submit_message();
+        self.release_year_box.submit_message();
+        self.media_type_box.submit_message();
+    }
+
+    fn get_song_from_input(&self) -> Song {
+        Song::new(
+            0,
+            &self.title_box.get_mesages().pop().unwrap(),
+            &self.artist_box.get_mesages().pop().unwrap(),
+            &self.album_box.get_mesages().pop().unwrap(),
+            self.release_year_box.get_mesages().pop().unwrap().parse::<i32>().unwrap(),
+            &self.media_type_box.get_mesages().pop().unwrap(),
+        )
     }
 
     pub fn are_any_boxes_editing_mode(&self) -> bool {

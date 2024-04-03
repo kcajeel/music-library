@@ -8,10 +8,9 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - `-h/--help` and `-v/--version` CLI args work ✅
 - TUI displays songs from database ✅
 - TUI search works ✅
+- Add New Song works ✅
 
 ## TODO
-- Make popups disappear when "Enter" is pressed
-- Submit each text box in popups when "Enter" is pressed iff each box is filled
 - Populate text boxes in Edit popups
 
 

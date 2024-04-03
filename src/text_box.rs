@@ -98,6 +98,9 @@ impl TextBox {
     pub fn get_input(&self) -> &String {
         &self.input
     }
+    pub fn get_mesages(&self) -> Vec<String> {
+        self.messages.clone()
+    }
 
     pub fn get_widget(&self) -> Paragraph {
         match self.input_mode {
