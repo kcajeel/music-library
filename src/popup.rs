@@ -13,8 +13,8 @@ use sqlx::MySqlPool;
 
 #[derive(Debug, Clone)]
 pub enum PopupMode {
-    Create,
-    Update,
+    New,
+    Edit,
 }
 
 #[derive(Debug, Clone)]
@@ -44,13 +44,13 @@ impl Popup {
         self.submit_all_boxes();
         let new_song = self.get_song_from_input();
         match self.mode {
-            PopupMode::Create => {
+            PopupMode::New => {
                 match add_song(pool, new_song).await {
                     Ok(_) => (),
                     Err(error) => eprintln!("Error adding song: {error}"),
                 };
             }
-            PopupMode::Update => {
+            PopupMode::Edit => {
                 match update_song(pool, self.song_id, new_song).await {
                     Ok(_) => (),
                     Err(error) => eprintln!("Error updating song: {error}"),
@@ -135,8 +135,8 @@ impl Widget for Popup {
         Self: Sized,
     {
         let title = match self.mode {
-            PopupMode::Create => Title::from(" New Song "),
-            PopupMode::Update => Title::from(" Edit Song "),
+            PopupMode::New => Title::from(" New Song "),
+            PopupMode::Edit => Title::from(" Edit Song "),
         };
         let instructions = Title::from(Line::from(vec![
             " Cancel ".into(),

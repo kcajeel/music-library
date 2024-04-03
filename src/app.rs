@@ -22,9 +22,9 @@ use sqlx::MySqlPool;
 #[derive(Debug, PartialEq)]
 enum AppMode {
     Normal,
-    Create,
+    New,
     Search,
-    Update,
+    Edit,
     Delete,
     Exit,
 }
@@ -41,8 +41,8 @@ pub struct App {
     esc_mode: bool,
 
     searchbar: TextBox,
-    create_popup: Popup,
-    update_popup: Popup,
+    new_popup: Popup,
+    edit_popup: Popup,
 }
 impl App {
     pub fn new(pool: MySqlPool) -> Self {
@@ -55,8 +55,8 @@ impl App {
             debug: true,
             esc_mode: false,
             searchbar: TextBox::new("Search".to_owned()),
-            create_popup: Popup::new(PopupMode::Create, 0),
-            update_popup: Popup::new(PopupMode::Update, 0),
+            new_popup: Popup::new(PopupMode::New, 0),
+            edit_popup: Popup::new(PopupMode::Edit, 0),
         }
     }
 
@@ -151,16 +151,16 @@ impl App {
         );
         frame.render_stateful_widget(table, self.get_layout(frame)[1], &mut table_state);
 
-        if self.mode == AppMode::Create
-            || self.mode == AppMode::Update
+        if self.mode == AppMode::New
+            || self.mode == AppMode::Edit
             || self.mode == AppMode::Delete
         {
             let popup_area = centered_rect(frame.size(), 50, 50);
             frame.render_widget(Clear, popup_area);
 
             match self.mode {
-                AppMode::Create => render_popup(frame, self.create_popup.clone(), popup_area),
-                AppMode::Update => render_popup(frame, self.update_popup.clone(), popup_area),
+                AppMode::New => render_popup(frame, self.new_popup.clone(), popup_area),
+                AppMode::Edit => render_popup(frame, self.edit_popup.clone(), popup_area),
                 AppMode::Delete => render_delete_popup(frame, popup_area),
                 _ => {}
             }
@@ -173,8 +173,8 @@ impl App {
                 &self.mode,
                 self.searchbar.get_input_mode(),
                 self.esc_mode,
-                self.create_popup.title_box.get_input(),
-                self.create_popup.title_box.input_mode,
+                self.new_popup.title_box.get_input(),
+                self.new_popup.title_box.input_mode,
                 self.selected_row,
             )),
             self.get_layout(&frame)[2],
@@ -214,7 +214,8 @@ impl App {
                     self.mode = AppMode::Normal;
                     self.esc_mode = false;
                     self.searchbar.set_input_mode(InputMode::Normal);
-                    self.create_popup.set_all_input_modes(InputMode::Normal);
+                    self.new_popup.set_all_input_modes(InputMode::Normal);
+                    self.edit_popup.set_all_input_modes(InputMode::Normal);
                 }
                 _ => {}
             }
@@ -233,210 +234,204 @@ impl App {
                         self.submit_search_query(self.searchbar.get_input().to_string())
                             .await;
                         self.searchbar.submit_message();
+                        self.toggle_search();
                     }
                     _ => {}
                 },
-                AppMode::Create => {
-                    if self.create_popup.do_all_boxes_have_text() {
+                AppMode::New => {
+                    if self.new_popup.do_all_boxes_have_text() {
                         match key_event.code {
                             KeyCode::Enter => {
-                                self.create_popup.submit(&self.pool).await;
+                                self.new_popup.submit(&self.pool).await;
+                                self.toggle_new_song();
+                                self.submit_search_query("".to_owned()).await;
                             }
                             _ => {}
                         }
                     }
-                    if self.create_popup.title_box.input_mode == InputMode::Editing {
+                    if self.new_popup.title_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.create_popup.title_box.enter_char(input_char);
+                                self.new_popup.title_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.create_popup.title_box.delete_char(),
-                            KeyCode::Left => self.create_popup.title_box.move_cursor_left(),
-                            KeyCode::Right => self.create_popup.title_box.move_cursor_right(),
+                            KeyCode::Backspace => self.new_popup.title_box.delete_char(),
+                            KeyCode::Left => self.new_popup.title_box.move_cursor_left(),
+                            KeyCode::Right => self.new_popup.title_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.create_popup.artist_box.input_mode = InputMode::Editing;
-                                self.create_popup.title_box.input_mode = InputMode::Normal;
+                                self.new_popup.artist_box.input_mode = InputMode::Editing;
+                                self.new_popup.title_box.input_mode = InputMode::Normal;
                             }
                             _ => {}
                         }
-                    } else if self.create_popup.artist_box.input_mode == InputMode::Editing {
+                    } else if self.new_popup.artist_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.create_popup.artist_box.enter_char(input_char);
+                                self.new_popup.artist_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.create_popup.artist_box.delete_char(),
-                            KeyCode::Left => self.create_popup.artist_box.move_cursor_left(),
-                            KeyCode::Right => self.create_popup.artist_box.move_cursor_right(),
+                            KeyCode::Backspace => self.new_popup.artist_box.delete_char(),
+                            KeyCode::Left => self.new_popup.artist_box.move_cursor_left(),
+                            KeyCode::Right => self.new_popup.artist_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.create_popup.album_box.input_mode = InputMode::Editing;
-                                self.create_popup.artist_box.input_mode = InputMode::Normal;
+                                self.new_popup.album_box.input_mode = InputMode::Editing;
+                                self.new_popup.artist_box.input_mode = InputMode::Normal;
                             }
                             _ => {}
                         }
-                    } else if self.create_popup.album_box.input_mode == InputMode::Editing {
+                    } else if self.new_popup.album_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.create_popup.album_box.enter_char(input_char);
+                                self.new_popup.album_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.create_popup.album_box.delete_char(),
-                            KeyCode::Left => self.create_popup.album_box.move_cursor_left(),
-                            KeyCode::Right => self.create_popup.album_box.move_cursor_right(),
+                            KeyCode::Backspace => self.new_popup.album_box.delete_char(),
+                            KeyCode::Left => self.new_popup.album_box.move_cursor_left(),
+                            KeyCode::Right => self.new_popup.album_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.create_popup.release_year_box.input_mode = InputMode::Editing;
-                                self.create_popup.album_box.input_mode = InputMode::Normal;
+                                self.new_popup.release_year_box.input_mode = InputMode::Editing;
+                                self.new_popup.album_box.input_mode = InputMode::Normal;
                             }
                             _ => {}
                         }
-                    } else if self.create_popup.release_year_box.input_mode == InputMode::Editing {
+                    } else if self.new_popup.release_year_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.create_popup.release_year_box.enter_char(input_char);
+                                self.new_popup.release_year_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.create_popup.release_year_box.delete_char(),
-                            KeyCode::Left => self.create_popup.release_year_box.move_cursor_left(),
+                            KeyCode::Backspace => self.new_popup.release_year_box.delete_char(),
+                            KeyCode::Left => self.new_popup.release_year_box.move_cursor_left(),
                             KeyCode::Right => {
-                                self.create_popup.release_year_box.move_cursor_right()
+                                self.new_popup.release_year_box.move_cursor_right()
                             }
                             KeyCode::Tab => {
-                                self.create_popup.media_type_box.input_mode = InputMode::Editing;
-                                self.create_popup.release_year_box.input_mode = InputMode::Normal;
+                                self.new_popup.media_type_box.input_mode = InputMode::Editing;
+                                self.new_popup.release_year_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.create_popup.release_year_box.submit_message();
+                                self.new_popup.release_year_box.submit_message();
                             }
                             _ => {}
                         }
-                    } else if self.create_popup.media_type_box.input_mode == InputMode::Editing {
+                    } else if self.new_popup.media_type_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.create_popup.media_type_box.enter_char(input_char);
+                                self.new_popup.media_type_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.create_popup.media_type_box.delete_char(),
-                            KeyCode::Left => self.create_popup.media_type_box.move_cursor_left(),
-                            KeyCode::Right => self.create_popup.media_type_box.move_cursor_right(),
+                            KeyCode::Backspace => self.new_popup.media_type_box.delete_char(),
+                            KeyCode::Left => self.new_popup.media_type_box.move_cursor_left(),
+                            KeyCode::Right => self.new_popup.media_type_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.create_popup.title_box.input_mode = InputMode::Editing;
-                                self.create_popup.media_type_box.input_mode = InputMode::Normal;
+                                self.new_popup.title_box.input_mode = InputMode::Editing;
+                                self.new_popup.media_type_box.input_mode = InputMode::Normal;
                             }
                             _ => {}
                         }
                     }
                 }
-                AppMode::Update => {
-                    if self.update_popup.do_all_boxes_have_text() {
+                AppMode::Edit => {
+                    if self.edit_popup.do_all_boxes_have_text() {
                         match key_event.code {
                             KeyCode::Enter => {
-                                self.update_popup.submit(&self.pool).await;
+                                self.edit_popup.submit(&self.pool).await;
+                                self.toggle_edit_song();
+                                self.submit_search_query("".to_owned()).await;
                             }
                             _ => {}
                         }
                     }
-                    if self.update_popup.title_box.input_mode == InputMode::Editing {
+                    if self.edit_popup.title_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.update_popup.title_box.enter_char(input_char);
+                                self.edit_popup.title_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.update_popup.title_box.delete_char(),
-                            KeyCode::Left => self.update_popup.title_box.move_cursor_left(),
-                            KeyCode::Right => self.update_popup.title_box.move_cursor_right(),
+                            KeyCode::Backspace => self.edit_popup.title_box.delete_char(),
+                            KeyCode::Left => self.edit_popup.title_box.move_cursor_left(),
+                            KeyCode::Right => self.edit_popup.title_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.update_popup.artist_box.input_mode = InputMode::Editing;
-                                self.update_popup.title_box.input_mode = InputMode::Normal;
+                                self.edit_popup.artist_box.input_mode = InputMode::Editing;
+                                self.edit_popup.title_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.update_popup.title_box.submit_message();
+                                self.edit_popup.title_box.submit_message();
                             }
                             _ => {}
                         }
-                    } else if self.update_popup.artist_box.input_mode == InputMode::Editing {
+                    } else if self.edit_popup.artist_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.update_popup.artist_box.enter_char(input_char);
+                                self.edit_popup.artist_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.update_popup.artist_box.delete_char(),
-                            KeyCode::Left => self.update_popup.artist_box.move_cursor_left(),
-                            KeyCode::Right => self.update_popup.artist_box.move_cursor_right(),
+                            KeyCode::Backspace => self.edit_popup.artist_box.delete_char(),
+                            KeyCode::Left => self.edit_popup.artist_box.move_cursor_left(),
+                            KeyCode::Right => self.edit_popup.artist_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.update_popup.album_box.input_mode = InputMode::Editing;
-                                self.update_popup.artist_box.input_mode = InputMode::Normal;
+                                self.edit_popup.album_box.input_mode = InputMode::Editing;
+                                self.edit_popup.artist_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.update_popup.artist_box.submit_message();
+                                self.edit_popup.artist_box.submit_message();
                             }
                             _ => {}
                         }
-                    } else if self.update_popup.album_box.input_mode == InputMode::Editing {
+                    } else if self.edit_popup.album_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.update_popup.album_box.enter_char(input_char);
+                                self.edit_popup.album_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.update_popup.album_box.delete_char(),
-                            KeyCode::Left => self.update_popup.album_box.move_cursor_left(),
-                            KeyCode::Right => self.update_popup.album_box.move_cursor_right(),
+                            KeyCode::Backspace => self.edit_popup.album_box.delete_char(),
+                            KeyCode::Left => self.edit_popup.album_box.move_cursor_left(),
+                            KeyCode::Right => self.edit_popup.album_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.update_popup.release_year_box.input_mode = InputMode::Editing;
-                                self.update_popup.album_box.input_mode = InputMode::Normal;
+                                self.edit_popup.release_year_box.input_mode = InputMode::Editing;
+                                self.edit_popup.album_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.update_popup.album_box.submit_message();
+                                self.edit_popup.album_box.submit_message();
                             }
                             _ => {}
                         }
-                    } else if self.update_popup.release_year_box.input_mode == InputMode::Editing {
+                    } else if self.edit_popup.release_year_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.update_popup.release_year_box.enter_char(input_char);
+                                self.edit_popup.release_year_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.update_popup.release_year_box.delete_char(),
-                            KeyCode::Left => self.update_popup.release_year_box.move_cursor_left(),
+                            KeyCode::Backspace => self.edit_popup.release_year_box.delete_char(),
+                            KeyCode::Left => self.edit_popup.release_year_box.move_cursor_left(),
                             KeyCode::Right => {
-                                self.update_popup.release_year_box.move_cursor_right()
+                                self.edit_popup.release_year_box.move_cursor_right()
                             }
                             KeyCode::Tab => {
-                                self.update_popup.media_type_box.input_mode = InputMode::Editing;
-                                self.update_popup.release_year_box.input_mode = InputMode::Normal;
+                                self.edit_popup.media_type_box.input_mode = InputMode::Editing;
+                                self.edit_popup.release_year_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.update_popup.release_year_box.submit_message();
+                                self.edit_popup.release_year_box.submit_message();
                             }
                             _ => {}
                         }
-                    } else if self.update_popup.media_type_box.input_mode == InputMode::Editing {
+                    } else if self.edit_popup.media_type_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.update_popup.media_type_box.enter_char(input_char);
+                                self.edit_popup.media_type_box.enter_char(input_char);
                             }
-                            KeyCode::Backspace => self.update_popup.media_type_box.delete_char(),
-                            KeyCode::Left => self.update_popup.media_type_box.move_cursor_left(),
-                            KeyCode::Right => self.update_popup.media_type_box.move_cursor_right(),
+                            KeyCode::Backspace => self.edit_popup.media_type_box.delete_char(),
+                            KeyCode::Left => self.edit_popup.media_type_box.move_cursor_left(),
+                            KeyCode::Right => self.edit_popup.media_type_box.move_cursor_right(),
                             KeyCode::Tab => {
-                                self.update_popup.title_box.input_mode = InputMode::Editing;
-                                self.update_popup.media_type_box.input_mode = InputMode::Normal;
+                                self.edit_popup.title_box.input_mode = InputMode::Editing;
+                                self.edit_popup.media_type_box.input_mode = InputMode::Normal;
                             }
                             KeyCode::Enter => {
-                                self.update_popup.media_type_box.submit_message();
+                                self.edit_popup.media_type_box.submit_message();
                             }
                             _ => {}
-                        }
-                    } else {
-                        if self.update_popup.do_all_boxes_have_text() {
-                            match key_event.code {
-                                KeyCode::Enter => {
-                                    self.update_popup.submit(&self.pool).await;
-                                }
-                                _ => {}
-                            }
                         }
                     }
                 }
                 AppMode::Delete => match key_event.code {
                     KeyCode::Char('Y') => {
-                        match delete_song(&self.pool, self.selected_row as u32).await {
-                            Ok(_) => {}
-                            Err(error) => {
-                                eprintln!("Error deleting songs: {}", error)
-                            }
-                        };
+                        let selected_song = self.get_selected_song();
+                        self.purge_song(selected_song).await;
+                        self.toggle_delete_song();
+                        self.submit_search_query("".to_owned()).await;
                     }
                     _ => {}
                 },
@@ -478,7 +473,8 @@ impl App {
         } else {
             AppMode::Normal
         };
-        self.esc_mode = true;
+        self.esc_mode = !self.esc_mode;
+
         if *self.searchbar.get_input_mode() != InputMode::Editing {
             self.searchbar.set_input_mode(InputMode::Editing);
         } else {
@@ -488,31 +484,33 @@ impl App {
 
     fn toggle_new_song(&mut self) {
         self.mode = if self.mode == AppMode::Normal {
-            AppMode::Create
+            AppMode::New
         } else {
             AppMode::Normal
         };
-        self.esc_mode = true;
-        if !self.create_popup.are_any_boxes_editing_mode() {
-            self.create_popup.title_box.input_mode = InputMode::Editing;
+        self.esc_mode = !self.esc_mode;
+        if self.mode == AppMode::New {
+            if !self.new_popup.are_any_boxes_editing_mode() {
+                self.new_popup.title_box.input_mode = InputMode::Editing;
+            }
         }
     }
 
     fn toggle_edit_song(&mut self) {
         self.mode = if self.mode == AppMode::Normal {
-            AppMode::Update
+            AppMode::Edit
         } else {
             AppMode::Normal
         };
+        self.esc_mode = !self.esc_mode;
 
-        if self.mode == AppMode::Update {
-            self.esc_mode = true;
+        if self.mode == AppMode::Edit {
             let selected_song = &self.get_selected_song();
-            self.update_popup
+            self.edit_popup
                 .populate_textboxes_with_song(selected_song);
 
-            if !self.update_popup.are_any_boxes_editing_mode() {
-                self.update_popup.title_box.input_mode = InputMode::Editing;
+            if !self.edit_popup.are_any_boxes_editing_mode() {
+                self.edit_popup.title_box.input_mode = InputMode::Editing;
             }
         }
     }
@@ -523,7 +521,7 @@ impl App {
         } else {
             AppMode::Normal
         };
-        self.esc_mode = true;
+        self.esc_mode = !self.esc_mode;
     }
 
     async fn submit_search_query(&mut self, query: String) {
@@ -558,8 +556,17 @@ impl App {
             }
         }
         eprintln!("No songs in database");
-        self.mode = AppMode::Create;
+        self.mode = AppMode::New;
         Song::default()
+    }
+
+    async fn purge_song(&mut self, song: Song) {
+        match delete_song(&self.pool, song.id).await {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("Error deleting songs: {}", error)
+            }
+        };
     }
 }
 
@@ -599,8 +606,8 @@ where
     Popup: Sized,
 {
     let title = match menu.mode {
-        PopupMode::Create => Title::from(" New Song "),
-        PopupMode::Update => Title::from(" Edit Song "),
+        PopupMode::New => Title::from(" New Song "),
+        PopupMode::Edit => Title::from(" Edit Song "),
     };
     let instructions = Title::from(Line::from(vec![
         " Cancel ".into(),

@@ -13,7 +13,8 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - Delete Song works ✅
 
 ## TODO
-- Make delete popup disappear when the song is deleted
+- Implement function to get count of total songs
+- Check if table view will scroll down with more songs. If not, implement it
 - Cleanup code and try to optimize
 
 ## To Run This Application: 
