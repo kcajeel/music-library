@@ -8,14 +8,13 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - `-h/--help` and `-v/--version` CLI args work ✅
 - TUI displays songs from database ✅
 - TUI search works ✅
-- Add New Song works ✅
+- New Song works ✅
 - Edit Song works ✅
 - Delete Song works ✅
 
-## TODO
-- Implement function to get count of total songs
-- Check if table view will scroll down with more songs. If not, implement it
-- Cleanup code and try to optimize
+All project features are completed! 
+
+I will continue testing the UI and fixing bugs as I find them, but in the general case this application is complete. 
 
 ## To Run This Application: 
 
