@@ -52,7 +52,7 @@ impl App {
             pool,
             selected_row: 1,
             mode: AppMode::Normal,
-            debug: true,
+            debug: false,
             esc_mode: false,
             searchbar: TextBox::new("Search".to_owned()),
             new_popup: Popup::new(PopupMode::New, 0),
@@ -155,7 +155,7 @@ impl App {
             || self.mode == AppMode::Edit
             || self.mode == AppMode::Delete
         {
-            let popup_area = centered_rect(frame.size(), 50, 50);
+            let popup_area = centered_rect(frame.size(), 70, 50);
             frame.render_widget(Clear, popup_area);
 
             match self.mode {
@@ -201,10 +201,10 @@ impl App {
                 KeyCode::Char('e') => self.toggle_edit_song(),
                 KeyCode::Char('d') => self.toggle_delete_song(),
                 KeyCode::Up | KeyCode::Char('k') => {
-                    self.selected_row = (self.selected_row - 1).clamp(0, 10)
+                    self.selected_row = (self.selected_row - 1).clamp(0, self.songs.len())
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
-                    self.selected_row = (self.selected_row + 1).clamp(0, 10)
+                    self.selected_row = (self.selected_row + 1).clamp(0, self.songs.len())
                 }
                 _ => {}
             }
@@ -244,6 +244,7 @@ impl App {
                             KeyCode::Enter => {
                                 self.new_popup.submit(&self.pool).await;
                                 self.toggle_new_song();
+                                self.new_popup.set_all_input_modes(InputMode::Normal);
                                 self.submit_search_query("".to_owned()).await;
                             }
                             _ => {}
@@ -294,7 +295,9 @@ impl App {
                     } else if self.new_popup.release_year_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.new_popup.release_year_box.enter_char(input_char);
+                                if input_char.is_numeric() {
+                                    self.new_popup.release_year_box.enter_char(input_char);
+                                }
                             }
                             KeyCode::Backspace => self.new_popup.release_year_box.delete_char(),
                             KeyCode::Left => self.new_popup.release_year_box.move_cursor_left(),
@@ -332,6 +335,7 @@ impl App {
                             KeyCode::Enter => {
                                 self.edit_popup.submit(&self.pool).await;
                                 self.toggle_edit_song();
+                                self.edit_popup.set_all_input_modes(InputMode::Normal);
                                 self.submit_search_query("".to_owned()).await;
                             }
                             _ => {}
@@ -391,7 +395,9 @@ impl App {
                     } else if self.edit_popup.release_year_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
-                                self.edit_popup.release_year_box.enter_char(input_char);
+                                if input_char.is_numeric() {
+                                    self.edit_popup.release_year_box.enter_char(input_char);
+                                }
                             }
                             KeyCode::Backspace => self.edit_popup.release_year_box.delete_char(),
                             KeyCode::Left => self.edit_popup.release_year_box.move_cursor_left(),
@@ -504,6 +510,7 @@ impl App {
         };
         self.esc_mode = !self.esc_mode;
 
+        self.edit_popup.clear_all_boxes();
         if self.mode == AppMode::Edit {
             let selected_song = &self.get_selected_song();
             self.edit_popup
@@ -695,7 +702,8 @@ fn render_delete_popup(frame: &mut Frame, area: Rect) {
         Paragraph::new(
             Text::from(" Are you sure you want to delete this song? ")
                 .bold()
-                .yellow()
+                .red()
+                .rapid_blink()
                 .alignment(Alignment::Center),
         )
         .block(delete_block),

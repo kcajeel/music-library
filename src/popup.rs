@@ -67,6 +67,14 @@ impl Popup {
         self.media_type_box.submit_message();
     }
 
+    pub fn clear_all_boxes(&mut self) {
+        self.title_box.clear_input();
+        self.artist_box.clear_input();
+        self.album_box.clear_input();
+        self.release_year_box.clear_input();
+        self.media_type_box.clear_input();
+    }
+
     fn get_song_from_input(&self) -> Song {
         Song::new(
             0,

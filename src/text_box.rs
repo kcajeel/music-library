@@ -107,6 +107,10 @@ impl TextBox {
         self.cursor_position += input.len();
     }
 
+    pub fn clear_input(&mut self) {
+        self.input.clear();
+    }
+
     pub fn get_widget(&self) -> Paragraph {
         match self.input_mode {
             InputMode::Normal => {
