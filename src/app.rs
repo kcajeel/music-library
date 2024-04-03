@@ -82,7 +82,8 @@ impl App {
         Ok(())
     }
 
-    fn render_frame(&self, frame: &mut Frame) {
+    fn render_frame(&mut self, frame: &mut Frame) {
+        // todo!("Extract this into a function");
         let mut rows: Vec<Row> = Vec::new();
         for song in &self.songs {
             let row = song_to_row(song);
@@ -239,9 +240,7 @@ impl App {
                     if self.create_popup.do_all_boxes_have_text() {
                         match key_event.code {
                             KeyCode::Enter => {
-                                if self.create_popup.do_all_boxes_have_text() {
-                                    self.create_popup.submit(&self.pool).await;
-                                }
+                                self.create_popup.submit(&self.pool).await;
                             }
                             _ => {}
                         }
@@ -324,6 +323,14 @@ impl App {
                     }
                 }
                 AppMode::Update => {
+                    if self.update_popup.do_all_boxes_have_text() {
+                        match key_event.code {
+                            KeyCode::Enter => {
+                                self.update_popup.submit(&self.pool).await;
+                            }
+                            _ => {}
+                        }
+                    }
                     if self.update_popup.title_box.input_mode == InputMode::Editing {
                         match key_event.code {
                             KeyCode::Char(input_char) => {
@@ -497,9 +504,16 @@ impl App {
         } else {
             AppMode::Normal
         };
-        self.esc_mode = true;
-        if !self.update_popup.are_any_boxes_editing_mode() {
-            self.update_popup.title_box.input_mode = InputMode::Editing;
+
+        if self.mode == AppMode::Update {
+            self.esc_mode = true;
+            let selected_song = &self.get_selected_song();
+            self.update_popup
+                .populate_textboxes_with_song(selected_song);
+
+            if !self.update_popup.are_any_boxes_editing_mode() {
+                self.update_popup.title_box.input_mode = InputMode::Editing;
+            }
         }
     }
 
@@ -527,6 +541,25 @@ impl App {
                 )]
             }
         };
+    }
+
+    fn get_selected_song(&mut self) -> Song {
+        let mut ids = Vec::new();
+
+        for song in &self.songs {
+            ids.push(song.id);
+        }
+
+        if let Some(selected_id) = ids.get(self.selected_row) {
+            for song in &self.songs {
+                if song.id == *selected_id {
+                    return song.clone();
+                }
+            }
+        }
+        eprintln!("No songs in database");
+        self.mode = AppMode::Create;
+        Song::default()
     }
 }
 

@@ -9,10 +9,12 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - TUI displays songs from database ✅
 - TUI search works ✅
 - Add New Song works ✅
+- Edit Song works ✅
+- Delete Song works ✅
 
 ## TODO
-- Populate text boxes in Edit popups
-
+- Make delete popup disappear when the song is deleted
+- Cleanup code and try to optimize
 
 ## To Run This Application: 
 

@@ -102,6 +102,11 @@ impl TextBox {
         self.messages.clone()
     }
 
+    pub fn set_input(&mut self, input: String) {
+        self.input += &input;
+        self.cursor_position += input.len();
+    }
+
     pub fn get_widget(&self) -> Paragraph {
         match self.input_mode {
             InputMode::Normal => {

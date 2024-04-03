@@ -73,7 +73,12 @@ impl Popup {
             &self.title_box.get_mesages().pop().unwrap(),
             &self.artist_box.get_mesages().pop().unwrap(),
             &self.album_box.get_mesages().pop().unwrap(),
-            self.release_year_box.get_mesages().pop().unwrap().parse::<i32>().unwrap(),
+            self.release_year_box
+                .get_mesages()
+                .pop()
+                .unwrap()
+                .parse::<i32>()
+                .unwrap(),
             &self.media_type_box.get_mesages().pop().unwrap(),
         )
     }
@@ -113,6 +118,15 @@ impl Popup {
         self.album_box.input_mode = new_mode.clone();
         self.release_year_box.input_mode = new_mode.clone();
         self.media_type_box.input_mode = new_mode;
+    }
+
+    pub fn populate_textboxes_with_song(&mut self, song: &Song) {
+        self.title_box.set_input(song.title.clone());
+        self.artist_box.set_input(song.artist.clone());
+        self.album_box.set_input(song.album.clone());
+        self.release_year_box
+            .set_input(song.release_year.to_string());
+        self.media_type_box.set_input(song.media_type.clone());
     }
 }
 impl Widget for Popup {
