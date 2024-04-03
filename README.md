@@ -8,10 +8,13 @@ This is a music catalog system, where the information is stored in a MariaDB dat
 - `-h/--help` and `-v/--version` CLI args work ✅
 - TUI displays songs from database ✅
 - TUI search works ✅
+- New Song works ✅
+- Edit Song works ✅
+- Delete Song works ✅
 
-## TODO
-- Make selected fields of add/edit popups turn yellow
-- Make popups disappear when "Enter" is pressed
+All project features are completed! 
+
+I will continue testing the UI and fixing bugs as I find them, but in the general case this application is complete. 
 
 ## To Run This Application: 
 

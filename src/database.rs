@@ -82,7 +82,6 @@ pub async fn add_song(pool: &MySqlPool, new_song: Song) -> Result<MySqlQueryResu
     .bind(new_song.release_year)
     .bind(new_song.media_type)
     .execute(pool).await?;
-    println!("{:?}", result);
     Ok(result)
 }
 

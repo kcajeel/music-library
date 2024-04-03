@@ -25,4 +25,15 @@ impl Song {
             media_type: media_type.to_owned(),
         }
     }
+
+    pub fn default() -> Self {
+        Self {
+            id: 0,
+            title: "Never Gonna Give You Up".to_owned(),
+            artist: "Rick Astley".to_owned(),
+            album: "Whenever You Need Somebody".to_owned(),
+            release_year: 1987,
+            media_type: "Vinyl".to_owned(),
+        }
+    }
 }
