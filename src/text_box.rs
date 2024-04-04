@@ -19,7 +19,7 @@ pub struct TextBox {
     /// Position of cursor in the editor area.
     cursor_position: usize,
     /// Current input mode
-    pub input_mode: InputMode,
+    input_mode: InputMode,
     /// History of recorded messages
     messages: Vec<String>,
 }
@@ -91,8 +91,8 @@ impl TextBox {
         self.input_mode = input_mode;
     }
 
-    pub fn get_input_mode(&self) -> &InputMode {
-        &self.input_mode
+    pub fn get_input_mode(&self) -> InputMode {
+        self.input_mode.clone()
     }
 
     pub fn get_input(&self) -> &String {
@@ -111,6 +111,7 @@ impl TextBox {
         self.input.clear();
     }
 
+    // turns the box yellow if in Editing mode
     pub fn get_widget(&self) -> Paragraph {
         match self.input_mode {
             InputMode::Normal => {

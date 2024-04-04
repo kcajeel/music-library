@@ -1,26 +1,25 @@
-// popup menu widget for editing and creating songs
+// this file contains the popup menu widget logic
 
 use crate::{
     database::{add_song, update_song},
     song::Song,
     text_box::{InputMode, TextBox},
 };
-use ratatui::{
-    prelude::*,
-    widgets::{block::*, *},
-};
 use sqlx::MySqlPool;
 
+// popup modes related to App mode
 #[derive(Debug, Clone)]
 pub enum PopupMode {
     New,
     Edit,
 }
 
+// Popup struct stores all state info
 #[derive(Debug, Clone)]
 pub struct Popup {
-    pub mode: PopupMode,
-    pub song_id: u32,
+    mode: PopupMode, // mode
+    song_id: u32,    // id for song to edit or create
+    // text boxes for each input field
     pub title_box: TextBox,
     pub artist_box: TextBox,
     pub album_box: TextBox,
@@ -30,6 +29,7 @@ pub struct Popup {
 
 impl Popup {
     pub fn new(mode: PopupMode, song_id: u32) -> Self {
+        // self explanatory
         Self {
             mode,
             song_id,
@@ -41,15 +41,18 @@ impl Popup {
         }
     }
     pub async fn submit(&mut self, pool: &MySqlPool) {
+        // submit all boxes and store a song from the input
         self.submit_all_boxes();
         let new_song = self.get_song_from_input();
         match self.mode {
+            // if mode is New, add new song and print any errors
             PopupMode::New => {
                 match add_song(pool, new_song).await {
                     Ok(_) => (),
                     Err(error) => eprintln!("Error adding song: {error}"),
                 };
             }
+            // if Edit mode, update the song and print any errors
             PopupMode::Edit => {
                 match update_song(pool, self.song_id, new_song).await {
                     Ok(_) => (),
@@ -59,6 +62,7 @@ impl Popup {
         }
     }
 
+    // submits all text boxes
     fn submit_all_boxes(&mut self) {
         self.title_box.submit_message();
         self.artist_box.submit_message();
@@ -67,6 +71,7 @@ impl Popup {
         self.media_type_box.submit_message();
     }
 
+    // clears all input fields in text boxes
     pub fn clear_all_boxes(&mut self) {
         self.title_box.clear_input();
         self.artist_box.clear_input();
@@ -75,6 +80,8 @@ impl Popup {
         self.media_type_box.clear_input();
     }
 
+    // returns a song from textbox input
+    // this function is only called when all boxes have input
     fn get_song_from_input(&self) -> Song {
         Song::new(
             0,
@@ -91,22 +98,24 @@ impl Popup {
         )
     }
 
+    // returns true if any text boxes are in editing mode
     pub fn are_any_boxes_editing_mode(&self) -> bool {
         let mut result = false;
-        if self.title_box.input_mode == InputMode::Editing {
+        if self.title_box.get_input_mode() == InputMode::Editing {
             result = true;
-        } else if self.artist_box.input_mode == InputMode::Editing {
+        } else if self.artist_box.get_input_mode() == InputMode::Editing {
             result = true;
-        } else if self.album_box.input_mode == InputMode::Editing {
+        } else if self.album_box.get_input_mode() == InputMode::Editing {
             result = true;
-        } else if self.release_year_box.input_mode == InputMode::Editing {
+        } else if self.release_year_box.get_input_mode() == InputMode::Editing {
             result = true;
-        } else if self.media_type_box.input_mode == InputMode::Editing {
+        } else if self.media_type_box.get_input_mode() == InputMode::Editing {
             result = true;
         }
         result
     }
 
+    // returns true if all boxes have some text in them
     pub fn do_all_boxes_have_text(&self) -> bool {
         let mut result = false;
         if (self.title_box.get_input().len() > 0)
@@ -120,14 +129,16 @@ impl Popup {
         result
     }
 
+    // sets all textbox input modes to the passed mode
     pub fn set_all_input_modes(&mut self, new_mode: InputMode) {
-        self.title_box.input_mode = new_mode.clone();
-        self.artist_box.input_mode = new_mode.clone();
-        self.album_box.input_mode = new_mode.clone();
-        self.release_year_box.input_mode = new_mode.clone();
-        self.media_type_box.input_mode = new_mode;
+        self.title_box.set_input_mode(new_mode.clone());
+        self.artist_box.set_input_mode(new_mode.clone());
+        self.album_box.set_input_mode(new_mode.clone());
+        self.release_year_box.set_input_mode(new_mode.clone());
+        self.media_type_box.set_input_mode(new_mode);
     }
 
+    // pushes the data from the song's fields to each text box
     pub fn populate_textboxes_with_song(&mut self, song: &Song) {
         self.title_box.set_input(song.title.clone());
         self.artist_box.set_input(song.artist.clone());
@@ -136,93 +147,8 @@ impl Popup {
             .set_input(song.release_year.to_string());
         self.media_type_box.set_input(song.media_type.clone());
     }
-}
-impl Widget for Popup {
-    fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
-    where
-        Self: Sized,
-    {
-        let title = match self.mode {
-            PopupMode::New => Title::from(" New Song "),
-            PopupMode::Edit => Title::from(" Edit Song "),
-        };
-        let instructions = Title::from(Line::from(vec![
-            " Cancel ".into(),
-            "<ESC>".yellow().bold(),
-            " Next Field ".into(),
-            "<Tab>".yellow().bold(),
-            " Submit ".into(),
-            "<Enter> ".yellow().bold(),
-        ]));
-        let block = Block::default()
-            .borders(Borders::all())
-            .title(title.alignment(Alignment::Center))
-            .title(
-                instructions
-                    .alignment(Alignment::Center)
-                    .position(Position::Bottom),
-            );
 
-        let vert_layout = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Percentage(18),
-                Constraint::Percentage(18),
-                Constraint::Percentage(18),
-                Constraint::Percentage(18),
-            ])
-            .split(block.inner(area));
-        let horiz_layout = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(vert_layout[3]);
-
-        block.render(area, buf);
-        let title_block = Block::default().borders(Borders::ALL);
-        let _title_bar = Paragraph::new(Text::from(format!(
-            " Title: {}",
-            self.title_box.get_input()
-        )))
-        .left_aligned()
-        .block(title_block)
-        .render(vert_layout[0], buf);
-
-        let artist_block = Block::default().borders(Borders::ALL);
-        let _artist_bar = Paragraph::new(Text::from(format!(
-            " Artist: {}",
-            self.artist_box.get_input()
-        )))
-        .left_aligned()
-        .block(artist_block)
-        .render(vert_layout[1], buf);
-
-        let album_block = Block::default().borders(Borders::ALL);
-        let _album_bar = Paragraph::new(Text::from(format!(
-            " Album: {}",
-            self.album_box.get_input()
-        )))
-        .left_aligned()
-        .block(album_block)
-        .render(vert_layout[2], buf);
-        let _album_block = Block::default().borders(Borders::ALL);
-
-        let year_block = Block::default().borders(Borders::ALL);
-        let _year_bar = Paragraph::new(Text::from(format!(
-            " Year: {}",
-            self.release_year_box.get_input()
-        )))
-        .left_aligned()
-        .block(year_block)
-        .render(horiz_layout[0], buf);
-
-        let media_type_block = Block::default().borders(Borders::ALL);
-        let _media_type_bar = Paragraph::new(Text::from(format!(
-            " Media: {}",
-            self.media_type_box.get_input()
-        )))
-        .left_aligned()
-        .block(media_type_block)
-        .render(horiz_layout[1], buf);
-        Paragraph::new(Text::from(format!(" {} ", self.title_box.get_input()))).render(area, buf);
+    pub fn get_popup_mode(&self) -> PopupMode {
+        self.mode.clone()
     }
 }

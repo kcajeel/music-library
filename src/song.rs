@@ -1,3 +1,5 @@
+// This is the program's model of a Song. Most of this is self explanatory.
+
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct Song {
     pub id: u32,
