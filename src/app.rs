@@ -121,7 +121,7 @@ impl App {
             .border_set(border::THICK);
         // store the selected row in the table's state
         let mut table_state: TableState =
-            TableState::default().with_selected(Some(self.selected_row.clamp(0, 100)));
+            TableState::default().with_selected(Some(self.selected_row.clamp(0, self.songs.len())));
         // Table row headers
         let header = Row::new(vec![
             Cell::from(" Title".bold()),
@@ -207,11 +207,19 @@ impl App {
                 KeyCode::Char('d') => self.toggle_delete_song(),
                 KeyCode::Up | KeyCode::Char('k') => {
                     // scroll up in the table
-                    self.selected_row = (self.selected_row - 1).clamp(0, self.songs.len())
+                    self.selected_row = if self.selected_row == 0 { // wrap around if up is pressed enough times
+                        self.songs.len() - 1
+                    } else {    // go up otherwise
+                        self.selected_row - 1
+                    };
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     // scroll down in the table
-                    self.selected_row = (self.selected_row + 1).clamp(0, self.songs.len())
+                    self.selected_row = if self.selected_row + 1 >= self.songs.len() {
+                        0
+                    } else {
+                        self.selected_row + 1
+                    };
                 }
                 _ => {}
             }

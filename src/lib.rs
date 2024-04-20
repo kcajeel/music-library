@@ -53,7 +53,7 @@ fn print_version() {
     println!(
         "\nmusic-library v{} \n
     Written by Jack Lee\n
-    Source: github.com/kcajeel/music-library\n",
+    Source: https://github.com/kcajeel/music-library\n",
         env!("CARGO_PKG_VERSION")
     );
 }
