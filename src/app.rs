@@ -366,6 +366,8 @@ impl App {
                         match key_event.code {
                             KeyCode::Enter => {
                                 // submit edited song and return to Normal mode if enter is pressed
+                                let selected_id = self.get_selected_song().id;
+                                self.edit_popup.set_song_id(selected_id);
                                 self.edit_popup.submit(&self.pool).await;
                                 self.toggle_edit_song();
                                 self.edit_popup.set_all_input_modes(InputMode::Normal);

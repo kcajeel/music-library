@@ -151,4 +151,8 @@ impl Popup {
     pub fn get_popup_mode(&self) -> PopupMode {
         self.mode.clone()
     }
+
+    pub fn set_song_id(&mut self, new_id: u32) {
+        self.song_id = new_id;
+    }
 }
